@@ -73,6 +73,184 @@ pip install -r requirements.txt
 ## 2. Run full analysis pipeline
 ```
 python main.py
+"""
+MAIN SCRIPT FOR:
+'Comprehensive Assessment of Pronuclear Morphological Pattern Prognostic Value
+Using Machine Learning Approaches in IVF Programs'
+
+Author: S. A. Sergeev
+GitHub repository: https://github.com/<your_repo>
+"""
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import (accuracy_score, roc_auc_score,
+                             precision_score, recall_score,
+                             f1_score, matthews_corrcoef)
+
+import tensorflow as tf
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense, SimpleRNN, Dropout
+from tensorflow.keras.regularizers import l1_l2
+
+from pykan import KAN
+import joblib
+
+
+# -------------------------------------------------------------------------
+# 1. Load dataset
+# -------------------------------------------------------------------------
+def load_dataset(path="data/processed/ivf_dataset.csv"):
+    print("[INFO] Loading dataset...")
+    df = pd.read_csv(path)
+    print(f"[INFO] Dataset loaded: {df.shape} entries")
+    return df
+
+
+# -------------------------------------------------------------------------
+# 2. PCA Dimensionality Reduction
+# -------------------------------------------------------------------------
+def run_pca(df, n_components=3):
+    print("[INFO] Running PCA...")
+    features = df.drop(columns=["Implantation", "PatientAge"], errors="ignore")
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(features)
+
+    pca = PCA(n_components=n_components)
+    pcs = pca.fit_transform(X_scaled)
+
+    print("[INFO] PCA Explained Variance:", pca.explained_variance_ratio_)
+    return pcs, pca
+
+
+# -------------------------------------------------------------------------
+# 3. K-Means Clustering
+# -------------------------------------------------------------------------
+def run_kmeans(pcs, k=3):
+    print(f"[INFO] Running KMeans with k={k}...")
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    labels = kmeans.fit_predict(pcs)
+    return labels, kmeans
+
+
+# -------------------------------------------------------------------------
+# 4. Deep Neural Network (DNN)
+# -------------------------------------------------------------------------
+def build_dnn(input_dim):
+    print("[INFO] Building DNN model...")
+    model = Sequential([
+        SimpleRNN(32, activation="relu",
+                  kernel_regularizer=l1_l2(0.001, 0.001),
+                  return_sequences=True,
+                  input_shape=(1, input_dim)),
+        Dropout(0.2),
+        SimpleRNN(16, activation="relu",
+                  kernel_regularizer=l1_l2(0.001, 0.001)),
+        Dense(1, activation="sigmoid")
+    ])
+    model.compile(optimizer=tf.keras.optimizers.Adam(1e-4),
+                  loss="binary_crossentropy",
+                  metrics=["accuracy"])
+    return model
+
+
+# -------------------------------------------------------------------------
+# 5. Kolmogorov–Arnold Network (KAN)
+# -------------------------------------------------------------------------
+def build_kan(input_dim):
+    print("[INFO] Building KAN model...")
+    model = KAN(width=[input_dim, 10, 1], grid=5)
+    return model
+
+
+# -------------------------------------------------------------------------
+# 6. Train-test pipeline
+# -------------------------------------------------------------------------
+def train_models(df):
+    print("[INFO] Training models...")
+
+    X = df.drop(columns=["Implantation"])
+    y = df["Implantation"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    # Reshape for RNN
+    X_train_rnn = np.expand_dims(X_train, axis=1)
+    X_test_rnn = np.expand_dims(X_test, axis=1)
+
+    # ----------- DNN -----------
+    dnn = build_dnn(X_train.shape[1])
+    dnn.fit(X_train_rnn, y_train, epochs=50, batch_size=32, verbose=1)
+
+    dnn_pred = dnn.predict(X_test_rnn).flatten()
+
+    # ----------- KAN -----------
+    kan = build_kan(X_train.shape[1])
+    kan.fit(X_train.values, y_train.values, steps=500)
+
+    kan_pred = kan.predict(X_test.values).flatten()
+
+    # ----------- Ensemble -----------
+    ensemble_pred = (dnn_pred + kan_pred) / 2
+
+    return dnn, kan, ensemble_pred, y_test
+
+
+# -------------------------------------------------------------------------
+# 7. Print performance
+# -------------------------------------------------------------------------
+def evaluate(pred, true):
+    print("\n=== MODEL PERFORMANCE ===")
+    pred_label = (pred > 0.5).astype(int)
+
+    print("Accuracy:", accuracy_score(true, pred_label))
+    print("Precision:", precision_score(true, pred_label))
+    print("Recall:", recall_score(true, pred_label))
+    print("F1:", f1_score(true, pred_label))
+    print("ROC-AUC:", roc_auc_score(true, pred))
+    print("MCC:", matthews_corrcoef(true, pred_label))
+
+
+# -------------------------------------------------------------------------
+# 8. Main entry point
+# -------------------------------------------------------------------------
+def main():
+    df = load_dataset()
+
+    # PCA + clustering
+    pcs, pca_model = run_pca(df)
+    clusters, kmeans_model = run_kmeans(pcs)
+
+    # Save PCA and cluster results
+    df["Cluster"] = clusters
+    df.to_csv("data/processed/ivf_dataset_with_clusters.csv", index=False)
+    print("[INFO] Clustering results saved.")
+
+    # Train models
+    dnn, kan, ensemble_pred, y_test = train_models(df)
+
+    # Evaluate
+    evaluate(ensemble_pred, y_test)
+
+    # Save models
+    dnn.save("models/dnn_model.h5")
+    kan.save("models/kan_model.pkl")
+    joblib.dump({"pca": pca_model, "kmeans": kmeans_model},
+                "models/preprocessing.pkl")
+
+    print("\n[INFO] All models saved successfully.")
+
+
+if __name__ == "__main__":
+    main()
+
 ```
 
 This script will:
