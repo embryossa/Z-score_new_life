@@ -30,34 +30,34 @@ The repository is designed to provide transparent, reproducible, open-source com
 - To demonstrate the limitations of static morphological scoring and highlight the need for integrated models combining morphology, morphokinetics, and ML.
 
 ---
-# Core scientific stack
+### Core scientific stack
 numpy==1.25.2
 pandas==2.1.4
 scikit-learn==1.5.0
 scipy==1.11.4
 
-# Plotting
+### Plotting
 matplotlib==3.8.2
 seaborn==0.13.2
 
-# Machine Learning – Neural Networks
+### Machine Learning – Neural Networks
 tensorflow==2.15.0
 keras==2.14.0
 
-# Kolmogorov–Arnold Networks
+### Kolmogorov–Arnold Networks
 pykan==0.2.1
 
-# Conformal Prediction (Venn-Abers)
+### Conformal Prediction (Venn-Abers)
 venn-abers==1.4.5
 
-# Saving models
+### Saving models
 joblib==1.3.2
 
-# Notebooks
+### Notebooks
 jupyter==1.0.0
 ipykernel==6.29.0
 
-# Utilities
+### Utilities
 tqdm==4.66.1
 
 
