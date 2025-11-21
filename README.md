@@ -1,6 +1,4 @@
 # Z-score_new_life
-Comprehensive Assessment of Pronuclear Morphological Pattern Prognostic Value Using Machine Learning Approaches in IVF Programs supplementary
-# Z-score_new_life
 ### Comprehensive Assessment of Pronuclear Morphological Pattern Prognostic Value Using Machine Learning Approaches in IVF Programs
 
 This repository contains the full analytical pipeline, code implementation, and supplementary materials for the study:
