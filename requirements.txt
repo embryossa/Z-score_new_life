@@ -7,7 +7,7 @@ scipy==1.11.4
 # Plotting
 matplotlib==3.8.2
 seaborn==0.13.2
-ployly
+plotly
 
 # Machine Learning – Neural Networks
 tensorflow==2.15.0
