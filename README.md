@@ -411,4 +411,10 @@ For questions or collaboration:
 - Emails: *noira.nigmat@gmail.com*, *embryossa@gmail.com*
 
 ---
+## 🔗 Related Repositories
 
+This study is part of a larger research program on AI in IVF:
+
+- **KAN–DNN Metamodel:**  
+  https://github.com/embryossa/KAN-in-IVF
+  https://github.com/embryossa/DNN
